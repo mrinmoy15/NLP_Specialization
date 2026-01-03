@@ -1,0 +1,172 @@
+Transformers:
+==============
+There has been a lot of hype with the transformers these days. The transformer model was introduced in 2017 by researchers at Google, including Lukasz Kaiser, who helped us develop this course. Since then, the transformer architecture has become the standard for large language models, including BERT, T5, and GPT-3. The transformers revolutionized the field of natural language processing. 
+
+Transformer Architecture basics:
+=================================
+The Transformer model uses scale dot-product attention.
+	
+								softmax(QK.T/sqrt(dk)).V 
+
+This form of attention is very efficient in terms of computation and memory due to it consisting of just matrix multiplication operations. 
+
+In the transformer model, you will use the multi-head attention layer. This layer runs in parallel and it has a number of scale dot-product attention mechanisms and multiple linear transformations of the input queries, keys, and values. In this layer, the linear transformations are learnable parameters. 
+
+Encoder (on the left)
+=========
+The transformer encoder starts with a multi-head attention module that performed self attention on the input sequence. That is, each word in the input attends to every other word in the input. This is followed by a residual connection and normalization, a feed forward layer, and another residual connection and normalization. This entire block is one encoder layer and is repeated N number of times.Thanks to self attention layer, the encoder will give you a contextual representation of each one of your inputs. 
+
+Decoder (on the right)
+========
+The decoder is constructed similarly to the encoder with multi-headed attention modules, residual connections, and normalization. The first attention module is masked such that each position attends only to previous positions. It blocks leftward flowing information. The second attention module takes the encoder output and allows the decoder to attend to all items. This whole decoder layer is also repeated some number of times, one after another. 
+
+
+Transformers also incorporates a positional encoding stage which encodes each input's position in the sequence. This is necessary because transformers don't use recurrent neural networks, but the word order is relevant for any language. Positional encoding can be learned or fixed, just as with word embeddings.The positional encoding has values that are added to the embeddings so that for every input word you have information about its order and position.
+
+Here is the full model architecture:
+=====================================
+                                                                           
+                                                                           Probabilitues
+                                                                                 |                                                                           
+                                                                              Softmax
+                                                                                 |
+                                                                                 |
+                                                                               Linear
+                                                                                 |
+                                                                      ___________|___________________
+                                                                     |       Add & Norm              |
+                                                                     |           |                   |
+                                                                     |      Feed Forward             |
+                                                   |---------------              |
+                                        ___________|____________   |  ___________|___________________
+                                       |      Add & Norm        |  | |      Add & Norm               |
+                                       |           |            |  | |           |                   |
+                                       |     Feed Forward       |  | |   Multi headed Attention      |
+                                                   |               |-------------|
+                                        ___________|____________      ___________|___________________
+                                       |       Add & Norm       |    |       Add & Norm              |
+                                       |           |            |    |           |                   |
+                                       | Multi headed Attention |    | Masked Multi headed Attention |       
+                                                   |                             |                   
+                       positional encoding---------|                             |--------------------positional encoding
+                                            Input Embeddings              Output Embeddings                  
+                                                   |                             |
+                                                   |                             |
+						Inputs                        outputs
+                                                                          (shifted right)
+
+
+Briefly on the left, the input sentence is first embedded and the positional encodings are applied. This goes to the encoder, which consists of multiple layers of multi-head attention modules. On the right is the decoder, which takes the output sentence, shifts it over one step to the right, and the outputs from the encoder. The decoder output is turned into output probabilities using a linear layer with a softmax activation. This architecture is easy to parallelize compared to RNN models, and as such, can be trained much more efficiently on multiple GPUs. It can also scale up to learn multiple tasks on larger and larger datasets.
+
+
+In summary, RNNs have some problems that come from their sequential structure. With RNNs, it is hard to fully exploit the advantages of parallel computing. And for long sequences, important information might get lost within the network and vanishing gradient problems arise. But fortunately, recent research has found ways to solve for the shortcomings of RNNs by using transformers. Transformers are a great alternative to RNNs that help overcome these problems in NLP and in many fields that process sequential data. 
+
+
+
+Attention Layers in detail
+===========================
+Sacled and Dot product Attention
+-------------------------------------
+The main operation and transformer is the scale dot product attention. Recall that in scale dot-products attention, you have queries, keys and values. The attention layer outputs context vectors for each query. And the context vectors are weighted sums of the values where the similarity between the queries and keys determines the weights assigned to each value.
+
+
+                                                          softmax((Q.K_T)/sqrt(dk)).V
+ 
+
+                                                               Matrix Multiplication
+                                                                  _______|_______
+                                                                 |               |
+                                                              Softmax            |
+                                                                 |               |
+                                                                 |               |
+                                                             Mask(Optional)      |
+                                                                 |               |
+                                                                 |               |
+                                                               Scale             |
+                                                                 |               |
+                                                                 |               | 
+                                                      Matrix Multiplication      |
+                                                          |            |         |
+                                                          |            |         |
+                                                      Queries Q      Keys K    Values V
+
+
+The SoftMax ensures that the weights add up to 1 and the division by the square roots of the dimension of the key factors is used to improve performance.
+
+The scale dot-product attention mechanism is very efficient since it relies only on matrix multiplication and SoftMax. Additionally, you could implement this attention mechanism to run on GPUs or TPUs to speed up training.
+
+To get the query, key and value matrices, you must first transform the words in your sequences toward embeddings. You'll need to get the embedding vector for each words in the sentence and stack up together in a matrix. This form the Query Matrix. So the query matrix will contain all of these embedding vectors as rows. 
+                      _             _
+Q --------------->   |   emb_vector1 |
+                     |   emb_vector2 |
+                     |   emb_vector3 |
+                     |_             _|
+
+Q (seq_length, embedding_size). 
+
+You will generally use the same vectors used for the key matrix for the value matrix. But you can transform that as well, but the number of vectors used to form the key and value matrix must be the same. Lets check the size of various matrices involved here:
+
+[Q (query_seq_length, embedding_size). K_T (embedding_size, key_seq_length)/sqrt(d_k)] (query_seq_length, key_seq_length).V (value_seq_length, embedding_size) 
+ 
+-----> output_matrix(query_seq_length, embedding_size)
+
+
+First, you compute the matrix products between the query and the transpose of the key matrix. You scale it by the inverse of the square of the dimension of the key vectors and calculate the SoftMax. This will give you a matrix with the weights for each key per query. Therefore the weight matrix will have a total number of elements equal to the number of queries times the number of keys.
+
+For example the third element in the second row would correspond to the weights assigned to the third key for the second query.
+
+
+After the computation of the weights matrix, you can multiply it with the value matrix to get a matrix that has rows which are context vector corresponding to each query. And the number of columns on this matrix is equal to the size of the value vectors, which is often the same as the embedding size.
+
+Scale dot-product attention is the heart and soul of transformers. In general terms, this mechanism takes queries, keys and values as matrices of embedding's. It is composed of just two matrix multiplication and a SoftMax function. Therefore, you could consider using GPUs and TPUs to speed up the training of models that rely on this mechanism.
+
+
+
+There are three main ways of attention in the transformer model:
+1. encoder-decoder attention: 
+--------------------------------
+the words in one sentence attend to all other words in another one. That is, the queries come from one sentence while the keys and values come from another. For example in the translation task from last week, where the words from sentences in French attended towards from sentences in English.
+
+2. self attention:
+-------------------
+the queries, keys, and values come from the same sentence. This type of attention lets you get contextual representations of your words. In other terms, self-attention gives you a representation of the meaning of each word within the sentence.
+
+3. Masked self attention:
+-------------------------
+queries, keys and values also come from the same sentence, but each query cannot attend to keys on future positions. This attention mechanism is present in the decoder from the transformer model and ensures that predictions at each position depend only on the known outputs. Mathematically, self-attention works precisely as the encoder-decoder attention. The only difference is the nature of the inputs for each mechanism.
+
+Let's focus on masked self-attention
+
+Recall that the scale dot-product attention requires the calculation of the softmax of the scaled products between the queries and the transpose of the key matrix. Then for mask self-attention, you add a mask matrix within the softmax. The mask has a zero on all of its positions, except for the elements above the diagonal, which are set to minus infinity. Or in practice, a huge negative number. After taking the softmax, this addition ensures that the elements in the weights matrix are zero for all the keys and the subsequent positions to the query.
+
+In the end, as with the other types of attention, you multiply the weights matrix by the value matrix to get the context vector for each query, and that's it. You only need to add a matrix within the softmax to ensure that the queries don't attend to future positions. 
+
+
+Multi Headed Attention:
+==========================
+** Refer to the reading notes for details
+
+
+Transformer Decoder:
+=====================
+** Refer to the reading notes for details
+
+
+
+
+Transfomer Summerizer:
+=======================
+First, take a look at the problem you will solve in this week's assignment. As input, you get whole news articles. As output, your model is expected to produce the summary of the articles, that is, few sentences that mention the most important ideas. To do this, you'll use the transformer model.
+
+Transformer only takes text as input and predicts the next word. For summarization, it turns out you just need to concatenate the input, in this case the article, and put the summary after it
+
+Here's an example of how to create input features for training the transformer from an article and its summary. The input for the model is a long text that starts with a news article, then comes the EOS tag, the summary, and then another EOS tag.
+
+Model Input: Article <EOS> Summary <EOS>
+
+As usual, the input is tokenized as a sequence of integers. When you're on the transformer on this input, it will predict the next word by looking at all the previous ones. But you do not want to have a huge loss in the model just because it's not able to predict the correct ones. That's why you have to use a weighted loss. Instead of averaging the loss for every word in the whole sequence, you weight the loss for the words within the article with zeros, and the words within the summary with ones so the model only focuses on the summary. However, when there is little data for the summaries, it actually helps to weight the article loss with non zero numbers, say 0.2 or 0.5 or even one. That way, the model is able to learn word relationships that are common in the news.
+
+The cost function is a cross entropy function that ignores the words from the article to be summarized. Now that you know how to construct the inputs and the model, you can train your transformer summarizer. Recall again that transformers predict the next word and your input is in use article. At test or inference time, you will input the article with the EOS token to the model and ask for the next word. It is the first word of the summary. Then you will ask for the next word, and the next, and so on, until you get the EOS token. When you run your transformer model, it generates a probability distribution over all possible words. You will sample from this distribution so each time you run this process, you'll get a different summary.
+
+
+                                                      
