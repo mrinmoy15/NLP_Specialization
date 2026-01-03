@@ -1,0 +1,17 @@
+The intuition behind the simplest loss function that uses triplets is to minimize the difference between the similarity of A and N and the similarity of A and P. This is equivalent to maximizing the similarity between the anchor and the positive example. While minimizing the similarity between the anchor and their associated negative examples. You already know that as a difference gets bigger or smaller along the x axis, the loss gets respectively bigger or smaller along the y axis. But no doubt when the diff is less than zero, the loss decreases towards negative values. And for some similarity functions, this simple loss function can even go to negative infinity. However, you want your model to tell apart positive from negative examples. And at some point it is not essential for the difference to continue decreasing. So you could constrain the loss function to take values greater than or equal to zero, ensuring that learning happens until the difference between similarities is close or equal to zero.
+
+That's why you would want to use a margin alpha in the triplet loss. It ensures that learning goes on until the difference between the similarities is equal or close to the margin value. You can think of all these as shifting the loss function a little to the left. Let's say you chose alpha to be 0.2. If the difference between similarities is minimal, like negative 0.1, and then if you add it to alpha equal to 0.2, the result is still greater than zero. This sum of the diff plus alpha results any positive loss that tells the model to learn from that example. You can see this visually in the line charts where the loss function is shifted to the left by alpha units. The diff is along the horizontal axis. When the difference is less than zero but small in magnitude, the loss is greater than zero.
+
+So if the difference is smaller in magnitude than alpha, then the loss function is positive and the model gets the message that it can still improve its performance. In practice, alpha is hyper parameter
+
+
+
+
+
+
+loss one to be the max of the mean negative minus the similarity of A and P plus Alpha and zero. The change between the formulas for triplet loss and loss one is the replacement of similarity of A and N. With the mean negative, this helps the model converge faster during training by reducing noise. It reduces noise by training on just the average of several observations rather than training the model on each of these off-diagonal. Why does taking the average of several observations usually reduce noise? Well, we define noise to be a small value that comes from a distribution that is centered around zero. In other words, the average of several noise values is usually zero. If we took the average of several examples, this has the effect of canceling out the individual noise from those observations.
+
+
+closest negative, this helps create a slightly larger penalty by diminishing the effects of the otherwise more negative similarity of A and N that it replaces. You can think of the closest negative as finding the negative example that results in the smallest difference between the two cosine similarities. If you had that small difference to Alpha, then you are able to generate the largest loss among all of the other examples in that row. By focusing the training on the examples that produce higher loss values, you make the model update its weights more.
+
+

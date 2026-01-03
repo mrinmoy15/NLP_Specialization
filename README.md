@@ -4,11 +4,11 @@ This repository contains materials, assignments, and notes for the [Natural Lang
 
 ## Courses Overview
 
-### [Course 1: NLP with Classification and Vector Spaces](Course1_NLP_Classification_and_Vector_Spaces/)
+### [Course 1: NLP with Classification and Vector Spaces](https://github.com/mrinmoy15/NLP_Specialization/tree/development/Course1_NLP_Classification_and_Vector_Spaces)
 **Description:**
 Learn to perform sentiment analysis of tweets using logistic regression and naïve Bayes. Explore vector space models to discover relationships between words, use PCA to visualize those relationships, and implement a simple English-to-French translation algorithm using pre-computed word embeddings and locality-sensitive hashing for approximate nearest neighbor search.
 
-### [Course 2: NLP with Probabilistic Models](Course2_NLP_Probabilistic_Model/)
+### [Course 2: NLP with Probabilistic Models](https://github.com/mrinmoy15/NLP_Specialization/tree/development/Course2_NLP_Probabilistic_Model)
 **Description:**
 Apply dynamic programming, hidden Markov models, and word embeddings to autocorrect misspelled words, autocomplete partial sentences, and identify part-of-speech tags for words. Build foundational probabilistic models for language understanding and generation.
 

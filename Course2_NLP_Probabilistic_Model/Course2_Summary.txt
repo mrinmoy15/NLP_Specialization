@@ -1,0 +1,60 @@
+Course1:NLP Classification and Vector space
+=============================================
+
+
+
+Week1: Autocorrect
+====================
+Content Summary:
+----------------- 
+Autocorrect implementation using Minimum Edit Distance Algorithm
+
+Assignement Summary: 
+---------------------
+Autocorrect implementation using Minimum Edit Distance Algorithm
+
+
+
+
+Week2: POS Tagging
+====================
+Content Summary:  
+-----------------
+Markov Chains, Hidden Markov Models, Viterbi Algorithm 
+
+
+Assignment Summary:
+-------------------
+POS Tagging: Build A POS Tagging system using Viterbi Algorithm 
+
+
+
+
+
+Week3: Vector Space Models
+============================
+Content Summary:  
+-----------------
+vector space models, Word by Word and Word by Doc, Eucledian vs Cosine Similarity, Manipulating words in vector spaces to find similar things, PCA algorithm
+
+Assignment Summary:
+--------------------
+vector space models: 
+Predict analogies between words, Use PCA to reduce the dimensionality of the word embeddings and plot them in two dimensions, Compare word embeddings by using a similarity measure (the cosine similarity), Understand how these vector space models work
+
+
+
+
+
+Week4: Machine Translation And Document Search
+================================================
+Content Summary:  
+-----------------
+Transforming word vectors, KNN, locality sensitive hashing and approximate nearest neighbours, Machine Translation, Document search
+
+Assignment Summary:
+--------------------
+Naive Machine Translation and local sensitive hashing:Built a very Naive machine translation sytem from English to French
+
+
+

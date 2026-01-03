@@ -1,0 +1,8 @@
+The Illustrated Transformer
+https://jalammar.github.io/illustrated-transformer/
+
+The Illustrated GPT-2 (Visualizing Transformer Language Models)
+https://jalammar.github.io/illustrated-gpt2/
+
+How GPT3 Works - Visualizations and Animations
+https://jalammar.github.io/how-gpt3-works-visualizations-animations/

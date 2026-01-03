@@ -1,0 +1,46 @@
+Summary of all the courses:
+===========================
+Course1:
+
+
+
+
+
+
+
+
+
+
+CPU/GPU/TPU
+===============
+The difference between CPU, GPU and TPU is that the CPU handles all the logics, calculations, and input/output of the computer, 
+it is a general-purpose processor. 
+
+In comparison, GPU is an additional processor to enhance the graphical interface and run high-end tasks. 
+
+TPUs are powerful custom-built processors to run the project made on a specific framework, i.e. TensorFlow.
+
+CPU: Central Processing Unit. Manage all the functions of a computer.
+
+GPU: Graphical Processing Unit. Enhance the graphical performance of the computer. Very optimized for machine learning computations.
+
+TPU: Tensor Processing Unit. Custom build ASIC to accelerate TensorFlow projects.
+
+
+Tensors
+=========
+Tensors are often used interchangeably with matrices. However, tensors are generalizations of matrices to N-dimensional space. A matrix is specifically a 2-dimensional tensor.
+
+
+Deep Learning Frameworks
+=========================
+keras, tensorflow, jax, trax (most optimized)  -- all developed by google 
+pytorch, caffe -- developed by facebook
+
+
+we will mostly work with trax and tensorflow
+
+google colab offers GPU computing
+to use google colab from local vscode instance, install the following package
+pip install colab_ssh
+

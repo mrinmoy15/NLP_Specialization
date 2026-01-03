@@ -1,0 +1,189 @@
+Seq to Seq Model for Neural Machine Translation
+=================================================
+Seq to Seq Model was traditionaly used for Machine Translation task, but it has a lot of shortcummings which leads to the rise of the attention based model architecture (Transformer).
+In neural machine translation, you're using an encoder and a decoder to translate from one language to another.
+
+For such a translation task you could use a machine translation system that has LSTMs for both encoding and decoding. The traditional seq2seq model was introduced by Google in 2014 and it was a revelation at the time. Basically, it works by taking one sequence of items such as words and its output, another sequence. 
+
+The way this is done is by mapping variable length sequences to a fixed length memory, which in machine translation, encodes the overall meaning of sentences. For example, you can have a text of length that varies and you can encode it into a vector or fixed dimension like 300, for example. This feature is what's made this model a powerhouse for machine translation.
+
+Additionally, the inputs and outputs don't need to have matching lengths, which is a desirable feature when translating texts. Then you might recall the vanishing and exploding gradients problems from earlier in the specialization. In seq2seq model, LSTMs and GRUs are typically used to avoid these problems.
+
+
+Seq to seq Model Architecure
+=============================
+in a seq2seq model, you have an encoder and a decoder. The encoder takes word tokens as input, and it returns its final hidden states as outputs. This hidden state is used by the decoder to generate the translated sentence in the target language.
+
+
+                                 input language ---------> Encoder --------> hidden state ---------> Decoder -----------> Output Language
+
+let's look closer at the encoder and decoder. The encoder typically consists of an embedding layer and an LSTM module with one or more layers. The encoder typically consists of an embedding layer and an LSTM module with one or more layers. The embedding layer transforms words tokenized first into a vector for input to the LSTM module. At each step in the input sequence, the LSTM module receives inputs from the embedding layer, as well as the hidden states from the previous step.The encoder returns the hidden states of the final step, shown here as h_4. This final hidden state has information from the whole sentence and it encodes its overall meaning.
+
+ 
+Encoder Architecture 
+====================
+                                        h1              h2            h3
+initial hidden state (h0) ------> LSTM -------->LSTM----------> LSTM -------> LSTM -----------> Final hidden state (h4)
+                                    |             |               |            |
+				    |             |               |            |
+				  Embed         Embed           Embed         Embed
+                                                   
+                                                    Tokenized words
+
+The decoder is constructed similarly with an embedding layer and an LSTM layer. You use the output word of a step as the input word for the next step. You also pass the LSTM hidden state to the next step. You start the input sequence where there is start of sequence token denoted as SOS here. The first step the most probable next word. Then you use this word as the input word for the next step and repeat to generate the rest of the sentence.
+
+Decoder Architecture
+====================
+
+                  h4       first translated word   2nd translated word
+Encoder -----------------------> LSTM -------\-----> LSTM ---------\------- > LSTM
+                                   |          \        |            \           |
+                                   |           \       |             \          |           -------- so on
+                                 Embed          \    Embed            \       Embed             
+                                 <SOS>           \_____|               \________|
+                 
+
+
+Limitaition of Traditional Seq2Seq Model
+==========================================
+One major limitation of the traditional seq2seq model is what's referred to as the information bottleneck. Since seq2seq uses a fixed length memory for the hidden states, long sequences become problematic. This is due to the fact that in traditional seq2seq models, only a fixed amount of information can be passed from the encoder to the decoder no matter how much information is contained in the input sequence. The power of seq2seq, which allows for inputs and outputs to be different sizes, becomes not effective when the input sequence is long.
+The result is lower model performance, a sequence size increases and that's no good. The issue with having one fixed size encoder hidden states is that it struggles to compress longer sequences and it ends up throttling itself and punishing the decoder who only wants to make a good prediction. 
+
+One workaround is to use the encoder hidden states for each word instead of trying to smash it all into one big vector. But this model would have flaws with memory and contexts. How could you build a time and memory efficient model that predicts accurately from a long sequence? This becomes possible if the model has a way to select and focus on the most important words at each time step. You can think of this as giving the model a new layer to process this information, which is called attention. f you provide the information specific to each input word, you can give the model a way to focus it's attention in the right place at each step of the decoding process. 
+
+
+Attention
+==========
+Attention is a very important concepts and allows you to focus where the model is looking at whenever making a prediction. For example, when translating one paragraph from English to French, you can focus on translating one sentence at a time or even more, a couple of words at a time. 
+
+What we call attention now was introduced in a landmark paper from Dzmitry Bahdanau, KyungHyun Cho, and Yoshua Bengio. The authors developed a method to fix the seq2seq models to translate longer sentences. Attention was originally developed for machine translation, but it's since being used in many other domains with great success.  
+
+In the Bahdanau paper they showed that seq2seq models perform well for sentences with about 10-20 words, but they fall beyond that. A seq2seq model must store the meaning of the entire input sequence in a single vector. Their RNN search 50 model with attention has basically no fall off in performance as sentence lengths increase. This is because the models are able to focus on specific inputs to predict words in the output translation, instead of having to memorize the entire input sentence.
+
+
+Motivation for Attention
+==========================
+Traditional seq2seq models, use the final hidden states of the encoder as the initial hidden state of the decoder. This forces the encoder to store the meaning of the entire input sequence into this one hidden states. Instead of using only the final hidden state, you can pass all the hidden states to the decoder. However, this quickly becomes inefficient as you must retain the hidden states for each input step in memory. 
+
+To solve this, you can combine the hidden states into one vector, typically called the context vector. It is simply a point-wise addition. Since the hidden vectors are all the same size, you can just add up these vector elements by elements to produce another vector of the same size.
+
+But now the decoder is getting information about each step. But It really only needs information from the first few inputs steps to predict the first word. This isn't that much different from using the last hidden states from LSTM or GRU. 
+
+The solution here is to wait certain encoder vectors more than others before the point-wise addition. Words that are more important for the next decoder outputs would have larger weights. This way, the context vector holds more information about the most important words and less information about other words.
+
+But how are these weights calculated to determine which input words are important at each step? The decoders previous hidden states, denoted as S_I minus 1, contains information about the previous words in the output translation. This means, you can compare the decoder states with each encoder state to determine the most important inputs. Intuitively, the decoder can set the weights such that if it focuses on only the most important inputs words for the next prediction, it decides which parts of the input sequence to pay attention to
+
+Now step into the attention layer to examine how the weights and context vector are calculated. The goal of the attention layer is to return a context vector that contains the relevant information from the encoder states. 
+
+The first step is to calculate the alignments, eij, which is a score of how well the inputs around J match the expected output i. This is done using the feedforward neural network with the encoder and decoder hidden states as inputs, where the weights for the feedforward network are learned along with the rest of the seq2seq model. The scores are then turned into weights which range from 0 to 1 using the softmax function. This means the weights can be thought of as a probability distribution which sum to 1. 
+
+Finally, each encoder states is multiplied by its respective weights and sum together into one context vector. Since the weights are the probability distribution, this is equivalent to calculating an expected value across word alignments. 
+
+Matrix Sizes
+=============
+input sentence (length n (n words)) -------> encoder ---------hidden state (input length, hidden_size)
+so encoder_state (input_length, hidden_size)
+decoder_state (1, hidden_size)
+
+
+
+
+
+Queries, Keys, Values and Attention
+=====================================
+The original attention paper (Dzmitry Bahdanau et.al) was published in 2014. Since then there have been multiple variations on attention with some models that don't rely on recurrent neural networks. For example in 2017 Google researchers publshed a paper named 'Attention is all you need' to introduce the transformer model, the form of attention based on information retrieval using queries, keys and values. The query is matched to a key and the value associated with that key is returned. For example, if we are translating between french and english 'heure' matches with 'time'. So we'd like to get the value for 'time'. The similarity between words is called alignment. The query and key vectors are used to calculate alignment scores that are measures of how well the query and keys match. These alignment scores are then turned into weights used for weighted sum of the value vectors and this weighted sum of the value vectors is returned as the attention vector.
+
+This process can be performed using scale dot-product attention. The queries for each step are packed together into a matrix Q. So attention can be computed simultaneously for each query. The keys and values are also packed into matrices K and V. These matrices are the inputs for the attention function. 
+
+First, the queries and keys matrices are multiplied together to get a matrix of alignments course. (Q.K_transpose). These are then scaled by the square root of the key vector dimension, dk the scaling improves the model performance for larger model sizes and could be seen as a regularization constants (Q.K_transpose/sqrt(dk))
+
+Next the scale scores are converted to weights using the softmax function. Such that the weights for each query sum to one. Finally the weights and the value matrices are multiplied to get the attention vectors for each query, you can think of the keys and the values as being the same. So when you multiply the softmax output with V you are taking a linear combination of your initial input which is then being fed to the decoder.
+
+                                                            attention = Softmax(Q.K_transpose/sqrt(dk)).V
+
+Note that unlike the original form of attention, scale dot-product attention consists of only two Matrix multiplications and no neural networks. Since matrix multiplication is highly optimized in modern deep learning frameworks. This form of attention is much faster to compute but this also means that the alignments between the source and target languages must be learned elsewhere. Typically, alignment is learned in the input embeddings or in other linear layers before the attention layer. 
+
+The alignment weights form a matrix with queries or targets words on the rows and keys or source words on the columns. Each entry in this matrix is the weight for the correspondent query, key pair. word pairs that have similar meanings will have larger weights than disimillar words. Through training, the model learns which words have similar meanings and encodes that information in the query and key matrix. 
+
+Learning alignment like this is beneficial for translating between languages with different grammatical structures. Since attention looks at the entire input and target sentences at once and calculates alignments based on word pairs weights are assigned appropriately regardless of word order. For example in similar meaning sentences from two different languages may have different structure in terms of similar words positions. The model can learn to align them appropriately allowing the decoder to focus on the appropriate inputs words despite different ordering.
+
+Neural Machine Translation (NMT) training:
+============================================
+As you learned before, seq2seq models generate translations by feeding the output of the decoder back in as the next inputs. This way there is no set length on the output sequence. When training the model, intuitively, you would compare the decoder output sequence with the target sequence to calculate the loss. That is, you would calculate the cross entropy loss for each step, then sum the steps together for the total loss. 
+
+However, in practice, this doesn't work too well. The problem is that in the early stages of training, the model is naive. It'll make wrong predictions early in the sequence. This problem compounds as the model keeps making wrong predictions and the translated sequence gets further and further from the target sequence.
+
+To avoid this problem, you can use the ground truth words as decoder inputs instead of the decoder outputs. Even if the model makes a wrong prediction, it pretends as if it's made the correct one and this can continue. This method makes training much faster and has a special name, teacher forcing. There are some variations on this tool. For example, you can slowly start using decoder outputs over time, so that leads into training, you are no longer feeding in the target words. This is known as curriculum learning.
+
+
+NMT Architecture: (This is an architecure example that you will implement in the assignment)
+===================
+You will have an encoder that gets the input sequence, a decoder which is supposed to do the translation, and an Attention Mechanism which would help the decoder focus on the important parts of the input sequence.
+
+Recall that the decoder is supposed to pass hidden states to the Attention Mechanism to get context vectors. The pass of the hidden states from the decoder to the Attention Mechanism could not be easy to implement. Instead, you will be using two decoders, a pre-attention decoder to provide hidden states, and a post-attention decoder which will provide the translation.
+
+A general overview of the modified model looks as follows. You will have the encoder and a pre-attention decoder that's got the inputs and target sequences. Then for the pre-attention decoder, the target sequence is shifted right, which is how you'll be implementing the teacher forcing. From the encoder and pre-attention decoder, you will retrieve the hidden states at each step and use them as inputs for the Attention Mechanism. You will use the hidden states from the encoder as the keys and values, while those from the decoder are the queries. As you have seen in previous lectures, the Attention Mechanism will use these values to compute the context vectors. Finally, the post-attention decoder will use the context vectors as inputs to provide the predicted sequence.  (Please refer to the slide for the detailed visual of the architecure)
+
+
+Let's take a closer look at each piece of the model. The initial step is to make two copies of the input tokens and the target tokens because you will need them in different places of the model. One copy of the input tokens is fed into the encoder, which is used to transform them into the key and value vectors, while a copy of the target tokens goes into the pre-attention decoder. Note that the computations done in the encoder and pre-attention decoder could be done in parallel, since they don't depend on each other. Within the pre-attention decoder, you shift each sequence to the right and add a start of sentence token. 
+
+In the encoder and pre-attention decoder, the inputs and targets go through an embedding layer before going to LSTMs. After getting the query key and value vectors, you have to prepare them for the attention layer. You'll use a function to help you get a padding mask to help the attention layer determine the padding tokens. This step is where you will use the copy of the input tokens. 
+
+Now, everything is ready for attention. You pass the queries, keys, values, and the mask to the attention layer that outputs the context vector and the mask. Before going through the decoder, you drop the mask. You then pass the context vectors through the decoder composed of an LSTM, a dense layer, and a LogSoftmax. In the end, your model returns log probabilities and the copy of the target tokens that you made at the beginning.
+
+
+
+BLEU score
+===========
+After building and training your model, it is essential to assess how well it performs. For machine translation, you have different metrics that were engineered just for this task. In this lecture, I will show you the BLEU score and some of its issues for evaluating machine translation models.
+
+The BLEU score, a bilingual evaluation under study, is an algorithm designed to evaluate some of the most challenging problems in NLP, including machine translation. It evaluates the quality of machine-translated text by comparing a candidate translation to one or more references, which are often human translations. The closer the BLEU score is to one, the better your model is, the closer to zero, the worse it is.
+
+To get the BLEU score, you have to compute the precision of the candidates by comparing its end-grams with reference translations. To get the BLEU score, you count how many words from the candidate appear in any of the references and divide that count by the total number of words in the candidate translation. 
+
+The problem with such a vanilla BLEU score is that a model that always outputs common words will do great. Let's try a modified version that will give you a better estimate of your model's performance. For the modified version of the BLEU score, after you find a word from the candidates in one or more of the references, you stop considering that word from the reference for the following words in the candidates. In other words, you exhaust the words in the references after you match them with a word in the candidates.
+
+This version of the BLEU score makes more sense than the vanilla implementation. However, like anything in life, using the BLEU score as an evaluation metric has some caveats. For one, it doesn't consider the semantic meaning of the words. It also doesn't consider the structure of the sentence. Even sentences just have the words in random orders will have a perfect BLEU scores. BLEU score is the most widely adopted evaluation metric for machine translation. But you should be aware of these drawbacks before using it.
+
+
+
+
+ROUGE score
+=============
+ROUGE score, another performance metric that tends to estimate the quality of machine translation systems. It stands for Recall-Oriented Understudy of Gisting Evaluation. it's more recall-oriented by default. That means that ROUGE cares about how much of the human created references appear in the candidate translation.
+
+In contrast, BLEU is precision oriented. Since you have to determine how many words from the candidates appear on the references. ROUGE was initially developed to evaluate the quality of the machine summarized texts, but is also helpful in assessing the quality of machine translation. It works by comparing the machine candidates against reference translations provided by humans.
+
+There are many versions of the ROUGE score, but also the one called ROUGE-N. For the ROUGE-N score, You have to get the counts of the n-gram overlaps between the candidates and the reference translations, which is somewhat similar to what you have to do for the BLEU score. 
+
+To get the basic version of the ROUGE-N score based only on recall so you must count word matches between the reference and the candidates, and divide by the number of words in the reference. If you had multiple references, you would need to get a ROUGE-N score using each reference and get the maximum. Also you can combine BLUE and ROUGE-N to Calculate F1 score.
+
+
+
+Greedy Decoding vs Random Sampling
+===================================
+When choosing the word with the highest probability at every time step, that does not necessarily generate the best sequence. With that said, let's dive in and explore these two methods.
+In a seq2seq model the output of the decoder is produced from a dense layer and a softmax or log softmax operation. The output at each step then is the probability distribution over all the words and symbols in the target vocabulary. The final output of the model depends on how you choose the words using these probability distributions at each step.
+
+Greedy decoding is the simplest way to decode the model's predictions as it selects the most probable word at every step. However, this approach has limitations. When you consider the highest probability for each prediction and concatenate all predicted tokens for the output sequence. As the greedy decoder does, you can end up with a situation where the output instead of, "I am hungry," gives you "I am, am, am" and so forth. You can see how this could be a problem, but not in all cases. For shorter sequences, it's going to be fine. But if you have many other words to consider, then knowing what's coming up next might help you better predict the next sequence
+
+Another option is known as random sampling. What random sampling does is it provides probabilities for each word and sample accordingly for the next outputs. One of the problems with this is that it could be a little bit too random. A solution for this is to assign more weight to the words with higher probabilities and less weight to the others. In sampling, temperature is a parameter you can adjust to allow for more or less randomness in your predictions. It's measured on a scale of 0-1, indicating low to high randomness. Let's say you need your model to make careful, safe decisions about what to output. Then set you're parameter lower and get the prediction equivalent of a very confident but rather a boring person seated next to you at a dinner table. If you feel like taking more of a gamble, set your temperature a bit higher. This has the effect of making your network more excited. You may get some pretty fun predictions. 
+
+
+
+Beam Search
+=============
+Beam search is a technique that allows you to find the best sequences over a fixed window size known as the beam width. Since taking the output with the highest probability at each time step is not ideal, beam search is a better alternative. So far the methods presented here only consider word probabilities one at a time. These ways of sampling might not result in the highest probability sequences and the sentence produced Using these methods might not make sense. The overall most probable translation given an input sentence is not necessarily the most probable word at each step. If you had infinite computational power, you could calculate the probabilities of every possible output sentence and choose the best one. In the real world we use beam search.
+
+Beam search attempts to find the most likely outsports sentence by choosing some number of best sequences based on conditional probabilities at each time step. Now at each time step with beam search you have to calculate the probability of potential sequences given the outputs of the previous time step. To avoid computing the probability for every possible sequence you have a parameater B called beam width. At each step, you only keep the B most probable sequences and drop all others.You generate a new word until all be most probable sentences and with the <EOS> token.
+
+So beam search consumes a lot of memory and could be computationally costly depending on your choice for beam. Greedy decoding is just a particular case of beam search where you set the beam with B to be equal to 1.
+
+
+To get the conditional probabilities at each step you have to use your model. For now let's focus on the decoder parts of the model ignoring the encoder and attention mechanism. At the start of the sequence you will use your decoder to output a vector of probabilities for each of the words in the vocabulary. This is equivalent to computing the conditional probability of every word given the start of sequence token. Then you select the most probable B outputs from the model and discard all other possibilities. After that you use your model B times to find the conditional probabilities of all the words in the vocabulary given the sequences that you kept in the previous step. Then you compute the sequence probability and keep the B most probable sequences. And you keep doing this until the B most probable sequences gets to the end of the sequence token.
+
+Note that at each step after the one where your sequence is only composed by the SOS token you have to run your model B times. 
+
+The vanilla version of beam search has some disadvantages. For instance, it penalizes the choice of longer sequences because the probability of a sequence is computed as the product of multiple conditional probabilities. However, you could normalize the probability of each sequence by its number of words is to avoid this problem. Beam search also requires you to store the B most probable sequences and computes conditional probabilities given all of those sequences. Therefore, this method could be computationally expensive and consumes lots of memory.
+
+

@@ -3,6 +3,15 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Data specific ignores
+data/
+model/
+models/
+model_test/
+pretrained_models/
+tydiqa_data/
+por-eng/
+
 # C extensions
 *.so
 
