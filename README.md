@@ -4,7 +4,7 @@ This repository contains materials, assignments, and notes for the [Natural Lang
 
 ## Courses Overview
 
-### [Course 1: NLP with Classification and Vector Spaces](Course1_NLP_Classification_and_Vector_Spaces/)
+### [Course 1: NLP with Classification and Vector Spaces](https://github.com/mrinmoy15/NLP_Specialization/tree/development/Course1_NLP_Classification_and_Vector_Spaces)
 **Description:**
 Learn to perform sentiment analysis of tweets using logistic regression and naïve Bayes. Explore vector space models to discover relationships between words, use PCA to visualize those relationships, and implement a simple English-to-French translation algorithm using pre-computed word embeddings and locality-sensitive hashing for approximate nearest neighbor search.
 
