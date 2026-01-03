@@ -1,0 +1,8 @@
+Stemming and lemmatization are both techniques used in natural language processing (NLP) to reduce a word to its base form. The main difference between the two is that stemming is a rule-based approach, while lemmatization is a dictionary-based approach.
+
+8448 walnut hill lane
+
+9643 Ferndale Rd
+2142218882
+
+10-12 pm
