@@ -1,0 +1,60 @@
+Course1:NLP Classification and Vector space
+=============================================
+
+
+
+Week1: Sentiment Analysis with Logistic Regression
+======================================================
+Content Summary:
+----------------- 
+Sentiment Analysis using Logistic Regression, Create the feature vector using poitive and negative frequencies.
+
+Assignement Summary: 
+---------------------
+Sentiment Analysis using Logistic Regression: Given a tweet, identify whether it is a positive or a negative tweet
+
+
+
+
+
+Week2: Sentiment Analysis with Naive Bayes
+============================================
+Content Summary:  
+-----------------
+Baye's Rule, Naive Bayes Classifier, log liklihood
+
+Assignment Summary:
+-------------------
+Sentiment Analysis using Naive Bayes Classifier: Sentiment analysis on tweets. Given a tweet, you will decide if it has a positive sentiment or a negative one.
+
+
+
+
+
+Week3: Vector Space Models
+============================
+Content Summary:  
+-----------------
+vector space models, Word by Word and Word by Doc, Eucledian vs Cosine Similarity, Manipulating words in vector spaces to find similar things, PCA algorithm
+
+Assignment Summary:
+--------------------
+vector space models: 
+Predict analogies between words, Use PCA to reduce the dimensionality of the word embeddings and plot them in two dimensions, Compare word embeddings by using a similarity measure (the cosine similarity), Understand how these vector space models work
+
+
+
+
+
+Week4: Machine Translation And Document Search
+================================================
+Content Summary:  
+-----------------
+Transforming word vectors, KNN, locality sensitive hashing and approximate nearest neighbours, Machine Translation, Document search
+
+Assignment Summary:
+--------------------
+Naive Machine Translation and local sensitive hashing:Built a very Naive machine translation sytem from English to French
+
+
+
